@@ -14,21 +14,26 @@
 //====================================================================================================
 namespace NConsts
 {
- static const uint32_t NUMBER_AMOUNT=10;//количество цифр
- static const uint32_t CARD_COLOR_AMOUNT=4;//количество мастей
- static const uint32_t CARD_UNIT_AMOUNT=14;//количество типов карт
+ static const int32_t NUMBER_AMOUNT=10;//количество цифр
+ static const int32_t CARD_COLOR_AMOUNT=4;//количество мастей
+ static const int32_t CARD_UNIT_AMOUNT=13;//количество типов карт
 
- static const uint32_t BOX_WIDTH=30;//размер пол€ по X
- static const uint32_t BOX_0_1_OFFSET_X=5;//положение €щиков 0 и 2 по X и Y
- static const uint32_t BOX_0_1_OFFSET_Y=5;
- static const uint32_t BOX_2_8_OFFSET_X=5;//положение €щиков с 2 по 8 по X и Y
- static const uint32_t BOX_2_8_OFFSET_Y=45;
- static const uint32_t BOX_9_12_OFFSET_X=95;//положение €щиков с 9 по 12 по X и Y
- static const uint32_t BOX_9_12_OFFSET_Y=5;
- static const uint32_t CARD_DX_OFFSET=10;//смещение каждой следующей карты вниз 
- static const uint32_t SIZE_SCALE=2;//масштабный коэффициент относительно размеров карт на PSP
- static const uint32_t CARD_WIDTH=27;//размер карты по X
- static const uint32_t CARD_HEIGHT=37;//размер карты по Y
+ static const int32_t BOX_WIDTH_OFFSET=10;//смещение пол€ с €щиками по X
+ static const int32_t BOX_HEIGHT_OFFSET=10;//смещение пол€ с €щиками по Y
+
+ static const int32_t BUTTON_HEIGHT_GAP=20;//рассто€ние между кнопкаи по высоте
+
+ static const int32_t PATIENCE_NUMBER_AMOUNT=5;//количество разр€дов в номере раскладов
+
+ static const int32_t BOX_AMOUNT=13;//количество €щиков
+ static const int32_t CARD_AMOUNT=52;//количество карт
+ static const int32_t CARD_AMOUNT_OFFSET=1;//смещение номеров карт
+
+ static const int32_t BOX_GAP=10;//промежуток между блоками карт
+
+ static const int32_t CARD_STACK_AMOUNT_IN_SCREEN=20;//количество карт в стопке при рассчЄте высоты окна
+
+ static const char STATE_FILE_NAME[]="state.bin";//им€ файла состо€ни€ игры
 }
 
 #endif

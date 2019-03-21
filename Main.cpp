@@ -32,7 +32,7 @@ CWinApp_Main::~CWinApp_Main()
 //-Замещённые функции предка-------------------------------------------------
 BOOL CWinApp_Main::InitInstance(void)
 {
- CWnd_Main *cWnd_Main=new CWnd_Main;
+ CWnd_Main *cWnd_Main=new CWnd_Main();
  HCURSOR hCursor=LoadStandardCursor(IDC_ARROW);
  HICON hIcon=LoadStandardIcon(IDI_APPLICATION);
  HBRUSH hBrush=(HBRUSH)COLOR_WINDOW;
