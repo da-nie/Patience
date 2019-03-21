@@ -11,7 +11,7 @@
 //конструктор
 //----------------------------------------------------------------------------------------------------
 CCursor::CCursor(void)
-{
+{ 
  Init();
 }
 
@@ -38,6 +38,7 @@ void CCursor::Init(void)
  cCoord_Position.X=0;
  cCoord_Position.Y=0;
  MoveMode=false;
+ for(int32_t n=0;n<NConsts::PATIENCE_NUMBER_AMOUNT;n++) PatienceNumber[n]=0;
  ResetSelected();
 }
 //----------------------------------------------------------------------------------------------------

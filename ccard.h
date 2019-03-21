@@ -33,9 +33,40 @@ class CCard
    //буби
    CARD_SUIT_DIAMONDS
   };
+  //значени€
+  enum CARD_VALUE
+  {
+   //туз
+   CARD_VALUE_A=0,
+   //2
+   CARD_VALUE_2,
+   //3
+   CARD_VALUE_3,
+   //4
+   CARD_VALUE_4,
+   //5
+   CARD_VALUE_5,
+   //6
+   CARD_VALUE_6,
+   //7
+   CARD_VALUE_7,
+   //8
+   CARD_VALUE_8,
+   //9
+   CARD_VALUE_9,
+   //10
+   CARD_VALUE_10,
+   //валет
+   CARD_VALUE_J,
+   //дама
+   CARD_VALUE_Q,
+   //король
+   CARD_VALUE_K
+};
+
   //-ѕеременные----------------------------------------------------------------------------------------- 
   CARD_SUIT Suit;//масть
-  int32_t Value;//значение карты от двойки до туза
+  CARD_VALUE Value;//значение карты от двойки до туза
   bool Visible;//true-карта видима  
  public:
   //- онструктор класса--------------------------------------------------------------------------------- 

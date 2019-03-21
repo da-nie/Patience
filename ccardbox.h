@@ -21,8 +21,18 @@
 class CCardBox
 {
  public:
+  //-ѕеречислени€--------------------------------------------------------------------------------------- 
+  //типы €щиков
+  enum CARD_BOX_TYPE
+  {
+   CARD_BOX_TYPE_MAP,//поле сборки
+   CARD_BOX_TYPE_PATIENCE,//расклад
+   CARD_BOX_TYPE_MAGAZINE//магазин
+  };
+
   //-ѕеременные-----------------------------------------------------------------------------------------   
   uint32_t Index;//индекс €щика
+  CARD_BOX_TYPE Type;//тип €щика
   CRectangle cRectangle_Position;//положение €щика на экране
   CCoord cCoord_CardOffset;//смещение дл€ каждой следующей карты
   std::deque<CCard> deque_CCard;//карты в €щике
@@ -42,6 +52,10 @@ class CCardBox
   bool MoveOneCard(CCardBox &cCardBox_Source);//переместить одну карту из €щика в данный €щик
   void MoveCard(CCardBox &cCardBox_Source,size_t card_amount);//переместить карты в данный €щик
   void MoveCardWithRules(CCardBox &cCardBox_Source,size_t card_amount);//переместить карты с учЄтом правил в данный €щик
+
+  bool IsMap(void);//€вл€етс€ ли €щик полем сборки
+  bool IsMagazine(void);//€вл€етс€ ли €щик магазином
+  bool IsPatience(void);//€вл€етс€ ли €щик раскладом
   //-«акрытые функции класса----------------------------------------------------------------------------
  protected:
 };

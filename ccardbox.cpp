@@ -12,6 +12,8 @@
 //----------------------------------------------------------------------------------------------------
 CCardBox::CCardBox(void)
 { 
+ Index=0;
+ Type=CARD_BOX_TYPE_MAP;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -97,16 +99,10 @@ bool CCardBox::MoveOneCard(CCardBox &cCardBox_Source)
 //переместить карты в данный €щик
 //----------------------------------------------------------------------------------------------------
 
-#include <windows.h>
-
 void CCardBox::MoveCard(CCardBox &cCardBox_Source,size_t card_amount)
 {
  size_t size=cCardBox_Source.GetCardAmount();
- if (size<card_amount)
- {
-  MessageBox(NULL,"ћало карт!","ќшибка",MB_OK);//только дл€ отладки - убрать в релизе!
-  return;
- } 
+ if (size<card_amount) return;
  size_t position=size-card_amount;
  while(position<size)
  {  
@@ -120,4 +116,29 @@ void CCardBox::MoveCard(CCardBox &cCardBox_Source,size_t card_amount)
   cCardBox_Source.deque_CCard.pop_back();
   card_amount--;
  }
+}
+
+//----------------------------------------------------------------------------------------------------
+//€вл€етс€ ли €щик полем сборки
+//----------------------------------------------------------------------------------------------------
+bool CCardBox::IsMap(void)
+{
+ if (Type==CARD_BOX_TYPE_MAP) return(true);
+ return(false);
+}
+//----------------------------------------------------------------------------------------------------
+//€вл€етс€ ли €щик магазином
+//----------------------------------------------------------------------------------------------------
+bool CCardBox::IsMagazine(void)
+{
+ if (Type==CARD_BOX_TYPE_MAGAZINE) return(true);
+ return(false);
+}
+//----------------------------------------------------------------------------------------------------
+//€вл€етс€ ли €щик раскладом
+//----------------------------------------------------------------------------------------------------
+bool CCardBox::IsPatience(void)
+{
+ if (Type==CARD_BOX_TYPE_PATIENCE) return(true);
+ return(false);
 }

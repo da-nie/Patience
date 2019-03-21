@@ -33,8 +33,7 @@
 class CWnd_Main:public CWnd
 {
  private:
-  //-Переменные класса----------------------------------------------------------------------------------
-  RECT Rect_Window;//размер окна
+  //-Перечисления---------------------------------------------------------------------------------------
   //режим работы таймера
   enum TIMER_MODE
   {
@@ -45,14 +44,8 @@ class CWnd_Main:public CWnd
    //таймер используется для вывода поздравления
    TIMER_MODE_CONGRATULATION
   };
-
-   //экран
-  CUniqueArrayPtr<UINT> ScreenBuffer;//указатель на видеобуфер изображения
-  std::unique_ptr<IVideo> iVideo_Ptr;//указатель на класс работы с видеобуфером
-  std::unique_ptr<ISpriteStorage> iSpriteStorage_Ptr;//указатель на класс хранилища спрайтов
-
-  TIMER_MODE TimerMode;//режим использования таймера
-  
+  //-Структуры------------------------------------------------------------------------------------------
+  //параметры обработки таймера
   struct STimerModeState
   {
    //для режима перемещения карт
@@ -65,9 +58,21 @@ class CWnd_Main:public CWnd
    int32_t EndY;
    //для режима поздравления
    int32_t Counter;
-  } sTimerModeState;
+  };
+  //-Переменные класса----------------------------------------------------------------------------------
+  RECT Rect_Window;//размер окна
+     
+  CUniqueArrayPtr<UINT> ScreenBuffer;//указатель на видеобуфер изображения
+  std::unique_ptr<IVideo> iVideo_Ptr;//указатель на класс работы с видеобуфером
+  std::unique_ptr<ISpriteStorage> iSpriteStorage_Ptr;//указатель на класс хранилища спрайтов
+
+  TIMER_MODE TimerMode;//режим использования таймера
+  STimerModeState sTimerModeState;//параметры обработки таймера
 
   CCardBox cCardBox[NConsts::BOX_AMOUNT];//ящики для карт
+  int32_t Magazine_FirstBoxIndex;//индекс первого ящика магазина
+  int32_t Magazine_SecondBoxIndex;//индекс второго ящика магазина
+
   CRectangle cRectangle_NumberFrame;//рамка номера пасьянса
   CRectangle cRectangle_LoadState;//кнопка "загрузить состояние"
   CRectangle cRectangle_SaveState;//кнопка "сохранить состояние"

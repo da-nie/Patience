@@ -15,7 +15,7 @@
 CCard::CCard(void)
 {
  Suit=CARD_SUIT_SPADES;
- Value=2;
+ Value=CARD_VALUE_2;
  Visible=false;
 }
 

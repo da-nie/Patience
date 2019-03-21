@@ -14,6 +14,9 @@
 //====================================================================================================
 namespace NConsts
 {
+ static const int32_t BOX_AMOUNT=13;//количество ящиков
+ static const int32_t WIN_COUNTER_MAX_VALUE=5*50;//время показа поздравления
+
  static const int32_t NUMBER_AMOUNT=10;//количество цифр
  static const int32_t CARD_SUIT_AMOUNT=4;//количество мастей
  static const int32_t CARD_VALUE_AMOUNT=13;//количество типов карт
@@ -25,7 +28,6 @@ namespace NConsts
 
  static const int32_t PATIENCE_NUMBER_AMOUNT=8;//количество разрядов в номере раскладов
 
- static const int32_t BOX_AMOUNT=13;//количество ящиков
  static const int32_t CARD_AMOUNT=52;//количество карт
  static const int32_t CARD_AMOUNT_OFFSET=1;//смещение номеров карт
 

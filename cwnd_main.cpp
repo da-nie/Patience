@@ -107,7 +107,7 @@ afx_msg void CWnd_Main::OnPaint(void)
  BITMAPINFOHEADER bmih;
  bmih.biSize=sizeof(BITMAPINFOHEADER);
  bmih.biWidth=width;
- bmih.biHeight=-height;
+ bmih.biHeight=-static_cast<int32_t>(height);
  bmih.biPlanes=1;
  bmih.biBitCount=32;
  bmih.biCompression=BI_RGB;
@@ -328,12 +328,16 @@ void CWnd_Main::InitBox(int32_t &right_border,int32_t &bottom_border)
   int32_t yt=0;
   int32_t dx=0;
   int32_t dy=0;
+  CCardBox::CARD_BOX_TYPE type=CCardBox::CARD_BOX_TYPE_MAP;
   if (n<2)//магазин
   {
    xl=NConsts::BOX_WIDTH_OFFSET+box_space_width*n;
    yt=NConsts::BOX_HEIGHT_OFFSET;
    dx=0;
    dy=0;
+   type=CCardBox::CARD_BOX_TYPE_MAGAZINE;
+   if (n==0) Magazine_FirstBoxIndex=n;
+   if (n==1) Magazine_SecondBoxIndex=n;
   }
   if (n>=2 && n<9)//расклад
   {
@@ -341,6 +345,7 @@ void CWnd_Main::InitBox(int32_t &right_border,int32_t &bottom_border)
    yt=NConsts::BOX_HEIGHT_OFFSET+card_height+NConsts::BOX_GAP;
    dx=0;
    dy=card_dy_offset;
+   type=CCardBox::CARD_BOX_TYPE_PATIENCE;
   }
   if (n>=9 && n<13)//поле сборки
   {
@@ -348,8 +353,10 @@ void CWnd_Main::InitBox(int32_t &right_border,int32_t &bottom_border)
    yt=NConsts::BOX_HEIGHT_OFFSET;
    dx=0;
    dy=0;
+   type=CCardBox::CARD_BOX_TYPE_MAP;
   }
   cCardBox[n].Index=n;
+  cCardBox[n].Type=type;
   cCardBox[n].cRectangle_Position.Set(CCoord(xl,yt),CCoord(card_width,card_height));
   cCardBox[n].cCoord_CardOffset.X=dx;
   cCardBox[n].cCoord_CardOffset.Y=dy;
@@ -558,12 +565,12 @@ void CWnd_Main::ReleaseCard(void)
    //если были выбранные блоки
    if (cCursor.SelectedBoxIndex==box)//карты отнесли туда же, где они и были
    {
-    if (box==1 || box==0) RotatePool();
+    if (cCardBox[box].IsMagazine()==true) RotatePool();
     cCursor.ResetSelected();
     Draw();
     return;
    }
-   if (cCursor.SelectedBoxIndex<2 && box<0)//карты нельзя относить в магазин
+   if ((cCardBox[cCursor.SelectedBoxIndex].IsMagazine()==true) && box<0)//карты нельзя относить в магазин
    {
     cCursor.ResetSelected();
     Draw();
@@ -595,11 +602,11 @@ int32_t CWnd_Main::RND(int32_t max)
 //----------------------------------------------------------------------------------------------------
 void CWnd_Main::RotatePool(void)
 {
- bool empty=cCardBox[1].MoveOneCard(cCardBox[0]);//перемещаем карты из нулевого ящика в первый
+ bool empty=cCardBox[Magazine_SecondBoxIndex].MoveOneCard(cCardBox[Magazine_FirstBoxIndex]);//перемещаем карты внутри магазина
  if (empty==false)//карт нет
  {
   //перемещаем обратно
-  while(cCardBox[0].MoveOneCard(cCardBox[1])==true);
+  while(cCardBox[Magazine_FirstBoxIndex].MoveOneCard(cCardBox[Magazine_SecondBoxIndex])==true);
  }
 }
 //----------------------------------------------------------------------------------------------------
@@ -619,50 +626,55 @@ void CWnd_Main::InitGame(void)
  for(int32_t s=0;s<NConsts::CARD_VALUE_AMOUNT;s++) cCardBox[s].deque_CCard.clear();
  //помещаем в исходный ящик карты
  int32_t index=0;
- CCard::CARD_SUIT suit[NConsts::CARD_SUIT_AMOUNT]={CCard::CARD_SUIT_SPADES,CCard::CARD_SUIT_HEARTS,CCard::CARD_SUIT_CLUBS,CCard::CARD_SUIT_DIAMONDS};
+ CCard::CARD_SUIT card_suit[NConsts::CARD_SUIT_AMOUNT]={CCard::CARD_SUIT_SPADES,CCard::CARD_SUIT_HEARTS,CCard::CARD_SUIT_CLUBS,CCard::CARD_SUIT_DIAMONDS};
+ CCard::CARD_VALUE card_value[NConsts::CARD_VALUE_AMOUNT]={CCard::CARD_VALUE_A,CCard::CARD_VALUE_2,CCard::CARD_VALUE_3,CCard::CARD_VALUE_4,CCard::CARD_VALUE_5,CCard::CARD_VALUE_6,CCard::CARD_VALUE_7,CCard::CARD_VALUE_8,CCard::CARD_VALUE_9,CCard::CARD_VALUE_10,CCard::CARD_VALUE_J,CCard::CARD_VALUE_Q,CCard::CARD_VALUE_K};
  for(int32_t s=0;s<NConsts::CARD_SUIT_AMOUNT;s++)
  {
   for(int32_t n=0;n<NConsts::CARD_VALUE_AMOUNT;n++,index++)
   {
    CCard cCard;
-   cCard.Suit=suit[s];
-   cCard.Value=n;
+   cCard.Suit=card_suit[s];
+   cCard.Value=card_value[n];
    cCard.Visible=true;
-   cCardBox[0].deque_CCard.push_back(cCard);
+   cCardBox[Magazine_FirstBoxIndex].deque_CCard.push_back(cCard);
   }
  }
  
  //теперь разбрасываем карты по ящикам
- for(int32_t n=0;n<7;n++)
+ int32_t n=0;
+ for(int32_t b=0;b<NConsts::BOX_AMOUNT;b++)
  {
+  if (cCardBox[b].IsPatience()==false) continue;
   for(int32_t m=0;m<=n;m++)
   {
    int32_t change=RND(100);
    for(int32_t s=0;s<=change;s++) RotatePool();//пропускаем карты
    //перемещаем карту
-   if (cCardBox[n+2].MoveOneCard(cCardBox[0])==false)//если пусто в ящике 0 - делаем заново
+   if (cCardBox[b].MoveOneCard(cCardBox[Magazine_FirstBoxIndex])==false)//если пусто в магазине - делаем заново
    {
     m--;
     continue;
    }
    //делаем карту невидимой
-   if (cCardBox[n+2].deque_CCard.empty()==false) cCardBox[n+2].deque_CCard.back().Visible=false;
+   if (cCardBox[b].deque_CCard.empty()==false) cCardBox[b].deque_CCard.back().Visible=false;
   }
+  n++;
  }
  //приводим магазин в исходное состояние
  while(1)
  {
-  if (cCardBox[1].IsEmpty()==true) break;//если пусто в ящике 1
+  if (cCardBox[Magazine_SecondBoxIndex].IsEmpty()==true) break;//если пусто в приёмнике магазина
   RotatePool();//пропускаем карты
  }
 }
 //----------------------------------------------------------------------------------------------------
-//сделать нижние карты всех рядов видимыми
+//сделать нижние карты всех рядов расклада видимыми
 //----------------------------------------------------------------------------------------------------
 void CWnd_Main::OnVisibleCard(void)
 {
- for(int32_t n=2;n<9;n++)
+ for(int32_t n=0;n<NConsts::BOX_AMOUNT;n++)
  {
+  if (cCardBox[n].IsPatience()==false) continue;
   if (cCardBox[n].deque_CCard.empty()==false) cCardBox[n].deque_CCard.back().Visible=true;
  }
 }
@@ -682,6 +694,8 @@ void CWnd_Main::DrawMap(void)
  //делаем видимым нижний ряд
  OnVisibleCard();
  //рисуем ячейки для карт
+ static const uint32_t color=(0xff<<24)|(0x00<<16)|(0x40<<8)|(0x00<<0);//цвет ячейки	 
+
  for(int32_t s=0;s<NConsts::BOX_AMOUNT;s++)
  {
   CRectangle cRectangle=cCardBox[s].GetCardRectangle(0);
@@ -696,7 +710,7 @@ void CWnd_Main::DrawMap(void)
     if (n>=0 && n<width && m>=0 && m<height)
     {
      uint32_t *v_ptr=vptr+(n+m*linesize);
-	 *v_ptr=(0xff<<24)|(0x00<<16)|(0x40<<8)|(0x00<<0);
+	 *v_ptr=color;
     }
    }
   }
@@ -838,12 +852,12 @@ void CWnd_Main::MoveCardWithRules(CCardBox &cCardBox_Source,CCardBox &cCardBox_D
  int32_t selected_card_index=source_size-card_amount;
  CCard &cCard_SourceFirst=cCardBox_Source.deque_CCard[selected_card_index];
 
- if (cCardBox_Destination.Index>=2 && cCardBox_Destination.Index<9)//если ящик на игровом поле
+ if (cCardBox_Destination.IsPatience()==true)//если ящик расклада
  {
   //если он пуст, то класть туда можно только короля
   if (cCardBox_Destination.IsEmpty()==true)
   {
-   if (cCard_SourceFirst.Value==12) cCardBox_Destination.MoveCard(cCardBox_Source,card_amount);//наша карта - король, перемещаем её
+   if (cCard_SourceFirst.Value==CCard::CARD_VALUE_K) cCardBox_Destination.MoveCard(cCardBox_Source,card_amount);//наша карта - король, перемещаем её
    return;
   }
   //иначе, класть можно в порядке убывания и разных цветовых мастей
@@ -858,14 +872,14 @@ void CWnd_Main::MoveCardWithRules(CCardBox &cCardBox_Source,CCardBox &cCardBox_D
   cCardBox_Destination.MoveCard(cCardBox_Source,card_amount);//копируем карты
   return;
  }
- if (cCardBox_Destination.Index>=9 && cCardBox_Destination.Index<13)//если ящик на поле сборки
+ if (cCardBox_Destination.IsMap()==true)//если ящик на поле сборки
  {
   //если выбрано несколько карт, то так перемещать карты нельзя - только по одной
   if (card_amount>1) return;
   //если ящик пуст, то класть туда можно только туза
   if (cCardBox_Destination.deque_CCard.empty()==true)
   {
-   if (cCard_SourceFirst.Value==0)//наша карта - туз, перемещаем её
+   if (cCard_SourceFirst.Value==CCard::CARD_VALUE_A)//наша карта - туз, перемещаем её
    {
 	DrawMoveCard(cCardBox_Source.Index,selected_card_index,cCardBox_Destination.Index);   
    }
@@ -889,9 +903,10 @@ void CWnd_Main::MoveCardWithRules(CCardBox &cCardBox_Source,CCardBox &cCardBox_D
 bool CWnd_Main::CheckFinish(void)
 {
  int32_t n;
- for(n=9;n<13;n++)
+ for(n=0;n<NConsts::BOX_AMOUNT;n++)
  {
-  if (cCardBox[n].deque_CCard.size()!=13) return(false);
+  if (cCardBox[n].IsMap()==false) continue;
+  if (cCardBox[n].deque_CCard.size()!=NConsts::CARD_VALUE_AMOUNT) return(false);
  }
  return(true);
 }
@@ -942,8 +957,8 @@ bool CWnd_Main::CheckMenu(void)
 //----------------------------------------------------------------------------------------------------
 void CWnd_Main::DrawFinish(void)
 {
- TimerMode=TIMER_MODE_CONGRATULATION;
- sTimerModeState.Counter=5*50;
+ TimerMode=TIMER_MODE_CONGRATULATION; 
+ sTimerModeState.Counter=NConsts::WIN_COUNTER_MAX_VALUE;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -953,6 +968,8 @@ bool CWnd_Main::LoadState(void)
 {
  CRAIIFileIn cRAIIFileIn(NConsts::STATE_FILE_NAME,std::ios_base::in|std::ios_base::binary);
  if (cRAIIFileIn.IsOpened()==false) return(false);
+ TimerMode=TIMER_MODE_NONE;
+ cCursor.Init();
  cCursor.LoadState(cRAIIFileIn.GetHandle());
  for(int32_t n=0;n<NConsts::BOX_AMOUNT;n++) cCardBox[n].LoadState(cRAIIFileIn.GetHandle());
  return(true);
