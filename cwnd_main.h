@@ -18,188 +18,14 @@
 #include "ispritestorage.h"
 #include "cuniquearrayptr.h"
 
+#include "ccoord.h"
+#include "ccard.h"
+#include "crectangle.h"
+#include "ccardbox.h"
+#include "ccursor.h"
+
 #include <memory>
-#include <deque>
-#include <algorithm>
 #include <fstream>
-
-
-//координата
-class CCoord
-{
- public:
-  int32_t X;
-  int32_t Y;
-  CCoord(void)
-  {
-   X=0;
-   Y=0;
-   }
-  CCoord(int32_t x,int32_t y)
-  {
-   X=x;
-   Y=y;
-  }
-};
-
-
-//пр€моугольна€ область
-class CRectangle
-{   
- public:
-  CCoord cCoord_Position;//положение на экране
-  CCoord cCoord_Size;//размер
- CRectangle(void)
- {
- }
- CRectangle(const CCoord &cCoord_position,const CCoord &cCoord_size)
- {
-  Set(cCoord_position,cCoord_size);
- }
-
-  bool IsPointInside(CCoord cCoord)//находитс€ ли точка внутри
-  {
-   if (cCoord.X<cCoord_Position.X) return(false);
-   if (cCoord.X>=cCoord_Position.X+cCoord_Size.X) return(false);
-   if (cCoord.Y<cCoord_Position.Y) return(false);
-   if (cCoord.Y>=cCoord_Position.Y+cCoord_Size.Y) return(false);
-   return(true);
-  }
-  void Set(const CCoord &cCoord_position,const CCoord &cCoord_size)
-  {
-   cCoord_Position=cCoord_position;
-   cCoord_Size=cCoord_size;
-  }
-  int32_t GetLeftX(void)
-  {
-   return(cCoord_Position.X);
-  }
-  int32_t GetTopY(void)
-  {
-   return(cCoord_Position.Y);
-  }
-  int32_t GetRightX(void)
-  {
-   return(cCoord_Position.X+cCoord_Size.X);
-  }
-  int32_t GetBottomY(void)
-  {
-   return(cCoord_Position.Y+cCoord_Size.Y);
-  }
-};
-
-  //масти
-  enum CARD_SUIT
-  {
-   //пики
-   CARD_SUIT_SPADES,
-   //червы
-   CARD_SUIT_HEARTS,
-   //трефы
-   CARD_SUIT_CLUBS,
-   //буби
-   CARD_SUIT_DIAMONDS
-  };
-
-
- //карта
- class CCard
- {
-  public:
-   CARD_SUIT Suit;//масть
-   int32_t Value;//значение карты от двойки до туза
-   bool Visible;//true-карта видима
-  bool SaveState(std::ofstream &file)
-  {
-   if (file.write(reinterpret_cast<char*>(&Suit),sizeof(CARD_SUIT)).fail()==true) return(false);
-   if (file.write(reinterpret_cast<char*>(&Value),sizeof(uint32_t)).fail()==true) return(false);
-   if (file.write(reinterpret_cast<char*>(&Visible),sizeof(bool)).fail()==true) return(false);
-   return(true);
-  }
-  bool LoadState(std::ifstream &file)
-  {
-   if (file.read(reinterpret_cast<char*>(&Suit),sizeof(CARD_SUIT)).fail()==true) return(false);
-   if (file.read(reinterpret_cast<char*>(&Value),sizeof(uint32_t)).fail()==true) return(false);
-   if (file.read(reinterpret_cast<char*>(&Visible),sizeof(bool)).fail()==true) return(false);
-   return(true);
-  }   
- };
-
-
-//€щик дл€ карт
-class CCardBox
-{
- public:
-  uint32_t Index;//индекс €щика
-  CRectangle cRectangle;//положени€ €щика на экране
-  CCoord cCoord_Offset;//смещение дл€ каждой следующей карты
-  std::deque<CCard> deque_CCard;//карты в €чейке
-  bool SaveState(std::ofstream &file)
-  {
-   size_t size=deque_CCard.size();
-   if (file.write(reinterpret_cast<char*>(&size),sizeof(size_t)).fail()==true) return(false);
-   for(size_t n=0;n<size;n++)
-   {
-    if (deque_CCard[n].SaveState(file)==false) return(false);
-   };
-   return(true);
-  }
-  bool LoadState(std::ifstream &file)
-  {
-   size_t size;
-   if (file.read(reinterpret_cast<char*>(&size),sizeof(size_t)).fail()==true) return(false);
-   deque_CCard.clear();
-   for(size_t n=0;n<size;n++)
-   {
-    CCard cCard;
-	if (cCard.LoadState(file)==false) return(false);
-    deque_CCard.push_back(cCard);
-   }
-   return(true);
-  }
-};
-
-//курсор
-class CCursor
-{
- public:
-  CCoord cCoord_Position;//позици€ курсора
-  bool MoveMode;//флаг режима перемещени€
-  int32_t SelectedBoxIndex;//выбранный €щик
-  int32_t SelectedPositionIndexInBox;//выбранна€ €чейка €щика
-  CCoord cCoord_OffsetWithSelectedPosition;//смещение курсора относительно выбранной €чейки €щика
-  uint8_t PatienceNumber[NConsts::PATIENCE_NUMBER_AMOUNT];//номер пась€нса
-  CCursor(void)
-  {
-   Init();
-  }
-  void Init(void)
-  {
-   cCoord_Position.X=0;
-   cCoord_Position.Y=0;
-   MoveMode=false;
-   ResetSelected();
-  }
-  void ResetSelected(void)
-  {
-   SelectedBoxIndex=-1;
-   SelectedPositionIndexInBox=-1;
-   cCoord_OffsetWithSelectedPosition.X=-1;
-   cCoord_OffsetWithSelectedPosition.Y=-1;
-  }
-  bool SaveState(std::ofstream &file)
-  {
-   if (file.write(reinterpret_cast<char*>(&PatienceNumber),sizeof(uint8_t)*NConsts::PATIENCE_NUMBER_AMOUNT).fail()==true) return(false);
-   return(true);
-  }
-  bool LoadState(std::ifstream &file)
-  {
-   if (file.read(reinterpret_cast<char*>(&PatienceNumber),sizeof(uint8_t)*NConsts::PATIENCE_NUMBER_AMOUNT).fail()==true) return(false);
-   return(true);
-  }
-};
-
-
 
 //====================================================================================================
 //главный класс программы
@@ -216,7 +42,7 @@ class CWnd_Main:public CWnd
    TIMER_MODE_NONE,
    //таймер используетс€ дл€ перемещени€ карты
    TIMER_MODE_MOVE_CARD,
-   //таймер используетс€ дл€ перемещени€ карт при выигрыше
+   //таймер используетс€ дл€ вывода поздравлени€
    TIMER_MODE_CONGRATULATION
   };
 
@@ -230,27 +56,24 @@ class CWnd_Main:public CWnd
   struct STimerModeState
   {
    //дл€ режима перемещени€ карт
-   int32_t s_box;
-   int32_t s_index;
-   int32_t d_box;
-   int32_t xb;
-   int32_t yb;
-   int32_t xe;
-   int32_t ye;
+   int32_t SourceBoxIndex;
+   int32_t SourceCardIndexInBox;
+   int32_t DestinationBoxIndex;
+   int32_t BeginX;
+   int32_t BeginY;
+   int32_t EndX;
+   int32_t EndY;
    //дл€ режима поздравлени€
    int32_t Counter;
   } sTimerModeState;
 
-
   CCardBox cCardBox[NConsts::BOX_AMOUNT];//€щики дл€ карт
-
   CRectangle cRectangle_NumberFrame;//рамка номера пась€нса
   CRectangle cRectangle_LoadState;//кнопка "загрузить состо€ние"
   CRectangle cRectangle_SaveState;//кнопка "сохранить состо€ние"
   CRectangle cRectangle_Start;//кнопка "сдать колоду"
-  CRectangle cRectangle_PatienceNumber[NConsts::PATIENCE_NUMBER_AMOUNT];//цифры номера расклада
-  
-  CCursor cCursor;
+  CRectangle cRectangle_PatienceNumber[NConsts::PATIENCE_NUMBER_AMOUNT];//цифры номера расклада  
+  CCursor cCursor;//курсор
 
   //-‘ункции класса-------------------------------------------------------------------------------------
   //-ѕрочее---------------------------------------------------------------------------------------------
@@ -286,18 +109,15 @@ class CWnd_Main:public CWnd
   void ReleaseCard(void);//освобождение карт
 
   int32_t RND(int32_t max);//случайное число
-  void DrawCard(const CCoord &cCoord,int32_t value,CARD_SUIT suit);//отрисовка карты
-  bool MoveCard(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination);//переместить карту из €чейки в €чейку
   void RotatePool(void);//перемещение карт внутри колоды
   void InitGame(void);//инициализировать расклад
   void OnVisibleCard(void);//сделать нижние карты всех р€дов видимыми
   void DrawMap(void);//нарисовать поле с картами
   bool GetSelectBoxParam(const CCoord &cCoord,int32_t &box,int32_t &index,bool &empty);//определение что за €щик и номер €чейки в данной позиции экрана
-  void ChangeBox(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination,size_t card_amount);//переместить несколько карт из одной €чейки в другую
   void DrawDesktop(void);//рисование сукна
   void DrawMenu(void);//рисование меню
-  void DrawMoveCard(int32_t s_box,int32_t s_index,int32_t d_box);//нарисовать перемещение карт
-  void ChangeCard(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination,size_t card_amount);//переместить карты с учЄтом правил
+  void DrawMoveCard(int32_t source_box_index,int32_t source_card_index_in_box,int32_t destination_box_index);//нарисовать перемещение карт
+  void MoveCardWithRules(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination,size_t card_amount);//переместить карты с учЄтом правил
   bool CheckFinish(void);//проверить на собранность пась€нс
   bool CheckMenu(void);//работа с меню
   void DrawFinish(void);//поздравление с победой

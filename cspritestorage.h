@@ -25,7 +25,7 @@ class CSpriteStorage:public ISpriteStorage
   //-Переменные-----------------------------------------------------------------------------------------
   std::unique_ptr<ISprite> iSprite_Dummy_Ptr;//спрайт заглушки
 
-  std::unique_ptr<ISprite> iSprite_Card_Ptr[NConsts::CARD_UNIT_AMOUNT][NConsts::CARD_COLOR_AMOUNT];//спрайты карт
+  std::unique_ptr<ISprite> iSprite_Card_Ptr[NConsts::CARD_VALUE_AMOUNT][NConsts::CARD_SUIT_AMOUNT];//спрайты карт
   std::unique_ptr<ISprite> iSprite_Pointer_Ptr;//спрайт указателя
   std::unique_ptr<ISprite> iSprite_Desktop_Ptr;//спрайт фона
   std::unique_ptr<ISprite> iSprite_Back_Ptr;//спрайт рубашки карт
@@ -42,7 +42,7 @@ class CSpriteStorage:public ISpriteStorage
   ~CSpriteStorage();
  public:
   //-Открытые функции класса----------------------------------------------------------------------------  
-  ISprite* GetSpriteCardPtr(uint32_t card,uint32_t color) const;//получить указатель на спрайт карты
+  ISprite* GetSpriteCardPtr(uint32_t value,uint32_t sout) const;//получить указатель на спрайт карты
   ISprite* GetSpritePointerPtr(void) const;//получить указатель на спрайт указателя
   ISprite* GetSpriteDesktopPtr(void) const;//получить указатель на спрайт фона
   ISprite* GetSpriteBackPtr(void) const;//получить указатель на спрайт рубашки карты

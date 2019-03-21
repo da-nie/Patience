@@ -15,15 +15,15 @@
 namespace NConsts
 {
  static const int32_t NUMBER_AMOUNT=10;//количество цифр
- static const int32_t CARD_COLOR_AMOUNT=4;//количество мастей
- static const int32_t CARD_UNIT_AMOUNT=13;//количество типов карт
+ static const int32_t CARD_SUIT_AMOUNT=4;//количество мастей
+ static const int32_t CARD_VALUE_AMOUNT=13;//количество типов карт
 
  static const int32_t BOX_WIDTH_OFFSET=10;//смещение поля с ящиками по X
  static const int32_t BOX_HEIGHT_OFFSET=10;//смещение поля с ящиками по Y
 
- static const int32_t BUTTON_HEIGHT_GAP=20;//расстояние между кнопкаи по высоте
+ static const int32_t BUTTON_HEIGHT_GAP=20;//расстояние между кнопками по высоте
 
- static const int32_t PATIENCE_NUMBER_AMOUNT=5;//количество разрядов в номере раскладов
+ static const int32_t PATIENCE_NUMBER_AMOUNT=8;//количество разрядов в номере раскладов
 
  static const int32_t BOX_AMOUNT=13;//количество ящиков
  static const int32_t CARD_AMOUNT=52;//количество карт
@@ -31,7 +31,7 @@ namespace NConsts
 
  static const int32_t BOX_GAP=10;//промежуток между блоками карт
 
- static const int32_t CARD_STACK_AMOUNT_IN_SCREEN=20;//количество карт в стопке при рассчёте высоты окна
+ static const int32_t CARD_STACK_AMOUNT_IN_SCREEN=15;//количество карт в стопке при расчёте высоты окна
 
  static const char STATE_FILE_NAME[]="state.bin";//имя файла состояния игры
 }

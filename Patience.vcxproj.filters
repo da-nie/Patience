@@ -48,6 +48,21 @@
     <ClCompile Include="ispritestorage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ccardbox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ccoord.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ccursor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="crectangle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ccard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csprite.h">
@@ -87,6 +102,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="consts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ccard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ccardbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ccoord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ccursor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crectangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

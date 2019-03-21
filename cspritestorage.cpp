@@ -16,49 +16,51 @@ CSpriteStorage::CSpriteStorage()
 {
  iSprite_Dummy_Ptr.reset(new CSprite());
 
+ static const int32_t MAX_STRING_SIZE=255;//максимальный размер строки
+
+ char filename[MAX_STRING_SIZE];
  //загружаем спрайты 
- for(uint32_t n=0;n<NConsts::CARD_COLOR_AMOUNT;n++)
+ for(uint32_t n=0;n<NConsts::CARD_SUIT_AMOUNT;n++)
  {
-  char filename[255];
-  for(uint32_t m=0;m<NConsts::CARD_UNIT_AMOUNT;m++) iSprite_Card_Ptr[m][n].reset(new CSprite());
+  for(uint32_t m=0;m<NConsts::CARD_VALUE_AMOUNT;m++) iSprite_Card_Ptr[m][n].reset(new CSprite());
   //туз
-  sprintf(filename,"Sprites\\card_A_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_A_%i.tga",n);
   iSprite_Card_Ptr[0][n]->Load(filename);
   //2
-  sprintf(filename,"Sprites\\card_02_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_02_%i.tga",n);
   iSprite_Card_Ptr[1][n]->Load(filename);
   //3
-  sprintf(filename,"Sprites\\card_03_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_03_%i.tga",n);
   iSprite_Card_Ptr[2][n]->Load(filename);
   //4
-  sprintf(filename,"Sprites\\card_04_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_04_%i.tga",n);
   iSprite_Card_Ptr[3][n]->Load(filename);
   //5
-  sprintf(filename,"Sprites\\card_05_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_05_%i.tga",n);
   iSprite_Card_Ptr[4][n]->Load(filename);
   //6
-  sprintf(filename,"Sprites\\card_06_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_06_%i.tga",n);
   iSprite_Card_Ptr[5][n]->Load(filename);
   //7
-  sprintf(filename,"Sprites\\card_07_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_07_%i.tga",n);
   iSprite_Card_Ptr[6][n]->Load(filename);
   //8
-  sprintf(filename,"Sprites\\card_08_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_08_%i.tga",n);
   iSprite_Card_Ptr[7][n]->Load(filename);
   //9
-  sprintf(filename,"Sprites\\card_09_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_09_%i.tga",n);
   iSprite_Card_Ptr[8][n]->Load(filename);
   //10
-  sprintf(filename,"Sprites\\card_10_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_10_%i.tga",n);
   iSprite_Card_Ptr[9][n]->Load(filename);
   //валет
-  sprintf(filename,"Sprites\\card_J_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_J_%i.tga",n);
   iSprite_Card_Ptr[10][n]->Load(filename);
   //дама
-  sprintf(filename,"Sprites\\card_Q_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_Q_%i.tga",n);
   iSprite_Card_Ptr[11][n]->Load(filename);
   //король
-  sprintf(filename,"Sprites\\card_K_%i.tga",n);
+  sprintf_s(filename,MAX_STRING_SIZE,"Sprites\\card_K_%i.tga",n);
   iSprite_Card_Ptr[12][n]->Load(filename);
  }
 
@@ -110,8 +112,8 @@ CSpriteStorage::~CSpriteStorage()
 //----------------------------------------------------------------------------------------------------
 ISprite* CSpriteStorage::GetSpriteCardPtr(uint32_t card,uint32_t color) const
 {
- if (card>=NConsts::CARD_UNIT_AMOUNT) return(iSprite_Dummy_Ptr.get());
- if (color>=NConsts::CARD_COLOR_AMOUNT) return(iSprite_Dummy_Ptr.get());
+ if (card>=NConsts::CARD_VALUE_AMOUNT) return(iSprite_Dummy_Ptr.get());
+ if (color>=NConsts::CARD_SUIT_AMOUNT) return(iSprite_Dummy_Ptr.get());
  return(iSprite_Card_Ptr[card][color].get());
 }
 //----------------------------------------------------------------------------------------------------

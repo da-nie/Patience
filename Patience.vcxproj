@@ -75,8 +75,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ccard.cpp" />
+    <ClCompile Include="ccardbox.cpp" />
+    <ClCompile Include="ccoord.cpp" />
+    <ClCompile Include="ccursor.cpp" />
     <ClCompile Include="craiifilein.cpp" />
     <ClCompile Include="craiifileout.cpp" />
+    <ClCompile Include="crectangle.cpp" />
     <ClCompile Include="csprite.cpp" />
     <ClCompile Include="cspritestorage.cpp" />
     <ClCompile Include="cvideo.cpp" />
@@ -88,8 +93,13 @@
     <ClCompile Include="tga.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ccard.h" />
+    <ClInclude Include="ccardbox.h" />
+    <ClInclude Include="ccoord.h" />
+    <ClInclude Include="ccursor.h" />
     <ClInclude Include="craiifilein.h" />
     <ClInclude Include="craiifileout.h" />
+    <ClInclude Include="crectangle.h" />
     <ClInclude Include="csprite.h" />
     <ClInclude Include="cspritestorage.h" />
     <ClInclude Include="cuniquearrayptr.h" />

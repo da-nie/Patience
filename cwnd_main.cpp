@@ -165,7 +165,7 @@ afx_msg void CWnd_Main::OnTimer(UINT nIDEvent)
     int32_t card=cCardBox[n].deque_CCard.size();
     for(int32_t b=9;b<13;b++)
     {          
-     ChangeCard(cCardBox[n],cCardBox[b],1);
+	 MoveCardWithRules(cCardBox[n],cCardBox[b],1);
      if (TimerMode!=TIMER_MODE_NONE) return;
     }    	
    }
@@ -174,33 +174,33 @@ afx_msg void CWnd_Main::OnTimer(UINT nIDEvent)
  }	
  if (TimerMode==TIMER_MODE_MOVE_CARD)
  {
-  int32_t s_box=sTimerModeState.s_box;
-  int32_t d_box=sTimerModeState.d_box;
-  int32_t s_index=sTimerModeState.s_index;
-  if ((sTimerModeState.xb!=sTimerModeState.xe || sTimerModeState.yb!=sTimerModeState.ye))
+  int32_t source_box_index=sTimerModeState.SourceBoxIndex;
+  int32_t destination_box_index=sTimerModeState.DestinationBoxIndex;
+  int32_t source_card_index_in_box=sTimerModeState.SourceCardIndexInBox;
+  if ((sTimerModeState.BeginX!=sTimerModeState.EndX || sTimerModeState.BeginY!=sTimerModeState.EndY))
   {
    for(int32_t n=0;n<NConsts::NUMBER_AMOUNT;n++)
    {
-    if (sTimerModeState.xb<sTimerModeState.xe) sTimerModeState.xb++;
-    if (sTimerModeState.xb>sTimerModeState.xe) sTimerModeState.xb--;
-    if (sTimerModeState.yb<sTimerModeState.ye) sTimerModeState.yb++;
-    if (sTimerModeState.yb>sTimerModeState.ye) sTimerModeState.yb--;
+    if (sTimerModeState.BeginX<sTimerModeState.EndX) sTimerModeState.BeginX++;
+    if (sTimerModeState.BeginX>sTimerModeState.EndX) sTimerModeState.BeginX--;
+    if (sTimerModeState.BeginY<sTimerModeState.EndY) sTimerModeState.BeginY++;
+    if (sTimerModeState.BeginY>sTimerModeState.EndY) sTimerModeState.BeginY--;
    }
    //делаем карты выбранными
    CCursor cCursorCopy=cCursor;
-   cCursor.SelectedBoxIndex=s_box;
-   cCursor.SelectedPositionIndexInBox=s_index;
+   cCursor.SelectedBoxIndex=source_box_index;
+   cCursor.SelectedPositionIndexInBox=source_card_index_in_box;
    cCursor.cCoord_OffsetWithSelectedPosition.X=0;
    cCursor.cCoord_OffsetWithSelectedPosition.Y=0;  	
-   cCursor.cCoord_Position.X=sTimerModeState.xb;
-   cCursor.cCoord_Position.Y=sTimerModeState.yb;
+   cCursor.cCoord_Position.X=sTimerModeState.BeginX;
+   cCursor.cCoord_Position.Y=sTimerModeState.BeginY;
    Draw();
    cCursor=cCursorCopy;   
   }
   else 
   {
-   int32_t card_amount=cCardBox[s_box].deque_CCard.size()-s_index;
-   ChangeBox(cCardBox[s_box],cCardBox[d_box],card_amount);
+   int32_t card_amount=cCardBox[source_box_index].deque_CCard.size()-source_card_index_in_box;
+   cCardBox[destination_box_index].MoveCard(cCardBox[source_box_index],card_amount);
    TimerMode=TIMER_MODE_NONE;
    Draw();
    if (CheckFinish()==true) DrawFinish();
@@ -350,12 +350,12 @@ void CWnd_Main::InitBox(int32_t &right_border,int32_t &bottom_border)
    dy=0;
   }
   cCardBox[n].Index=n;
-  cCardBox[n].cRectangle.Set(CCoord(xl,yt),CCoord(card_width,card_height));
-  cCardBox[n].cCoord_Offset.X=dx;
-  cCardBox[n].cCoord_Offset.Y=dy;
+  cCardBox[n].cRectangle_Position.Set(CCoord(xl,yt),CCoord(card_width,card_height));
+  cCardBox[n].cCoord_CardOffset.X=dx;
+  cCardBox[n].cCoord_CardOffset.Y=dy;
 
-  if (right_border<cCardBox[n].cRectangle.GetRightX()) right_border=cCardBox[n].cRectangle.GetRightX();
-  if (bottom_border<cCardBox[n].cRectangle.GetBottomY()) bottom_border=cCardBox[n].cRectangle.GetBottomY();
+  if (right_border<cCardBox[n].cRectangle_Position.GetRightX()) right_border=cCardBox[n].cRectangle_Position.GetRightX();
+  if (bottom_border<cCardBox[n].cRectangle_Position.GetBottomY()) bottom_border=cCardBox[n].cRectangle_Position.GetBottomY();
  }
  right_border+=NConsts::BOX_WIDTH_OFFSET;
 }
@@ -503,7 +503,7 @@ void CWnd_Main::AutoCollection(void)
     int32_t b;
     for(b=9;b<NConsts::BOX_AMOUNT;b++) 
     {
-     if (cCursor.SelectedPositionIndexInBox==cCardBox[cCursor.SelectedBoxIndex].deque_CCard.size()-1) ChangeCard(cCardBox[cCursor.SelectedBoxIndex],cCardBox[b],1);
+     if (cCursor.SelectedPositionIndexInBox==cCardBox[cCursor.SelectedBoxIndex].deque_CCard.size()-1) MoveCardWithRules(cCardBox[cCursor.SelectedBoxIndex],cCardBox[b],1);
     }
 	cCursor.ResetSelected();
     Draw();
@@ -529,8 +529,9 @@ void CWnd_Main::CaptureCard(void)
     if (cCardBox[cCursor.SelectedBoxIndex].deque_CCard[cCursor.SelectedPositionIndexInBox].Visible==true)
     {
      //вычисляем смещение курсора относительно выбранной карты
-     cCursor.cCoord_OffsetWithSelectedPosition.X=cCursor.cCoord_Position.X-(cCardBox[cCursor.SelectedBoxIndex].cRectangle.cCoord_Position.X+cCardBox[cCursor.SelectedBoxIndex].cCoord_Offset.X*cCursor.SelectedPositionIndexInBox);
-	 cCursor.cCoord_OffsetWithSelectedPosition.Y=cCursor.cCoord_Position.Y-(cCardBox[cCursor.SelectedBoxIndex].cRectangle.cCoord_Position.Y+cCardBox[cCursor.SelectedBoxIndex].cCoord_Offset.Y*cCursor.SelectedPositionIndexInBox);
+	 CRectangle cRectangle=cCardBox[cCursor.SelectedBoxIndex].GetCardRectangle(cCursor.SelectedPositionIndexInBox);
+	 cCursor.cCoord_OffsetWithSelectedPosition.X=cCursor.cCoord_Position.X-cRectangle.GetLeftX();
+	 cCursor.cCoord_OffsetWithSelectedPosition.Y=cCursor.cCoord_Position.Y-cRectangle.GetTopY();
     }
     else
     {
@@ -571,7 +572,7 @@ void CWnd_Main::ReleaseCard(void)
    if (cCursor.SelectedBoxIndex>=0 && cCursor.SelectedPositionIndexInBox>=0)//перенесли карты
    {
     int32_t card_amount=cCardBox[cCursor.SelectedBoxIndex].deque_CCard.size()-cCursor.SelectedPositionIndexInBox;
-    ChangeCard(cCardBox[cCursor.SelectedBoxIndex],cCardBox[box],card_amount);
+	MoveCardWithRules(cCardBox[cCursor.SelectedBoxIndex],cCardBox[box],card_amount);
     cCursor.ResetSelected();
     Draw();
     return;
@@ -590,63 +591,15 @@ int32_t CWnd_Main::RND(int32_t max)
  return((int32_t)((float)(max)*((float)rand())/((float)RAND_MAX)));
 }
 //----------------------------------------------------------------------------------------------------
-//отрисовка карты
-//----------------------------------------------------------------------------------------------------
-void CWnd_Main::DrawCard(const CCoord &cCoord,int32_t value,CARD_SUIT suit)
-{
- int32_t n;	
- if (value<0 || value>=NConsts::CARD_UNIT_AMOUNT) return;//таких значений нет
- int32_t suit_index=-1;
- if (suit==CARD_SUIT_SPADES) suit_index=0;
- if (suit==CARD_SUIT_HEARTS) suit_index=1;
- if (suit==CARD_SUIT_CLUBS) suit_index=2;
- if (suit==CARD_SUIT_DIAMONDS) suit_index=3;
- if (suit_index<0) return;//таких мастей нет
- iSpriteStorage_Ptr->GetSpriteCardPtr(value,suit_index)->Put(iVideo_Ptr.get(),cCoord.X,cCoord.Y,false,CSprite::ForwardColor,ISprite::COLOR_MODE_RGB);
-
- uint32_t card_width=iSpriteStorage_Ptr->GetSpriteCardPtr(value,suit_index)->GetWidth();
-
- uint32_t width;
- uint32_t height;
- iVideo_Ptr->GetScreenSize(width,height);
-
- uint32_t *vptr;
- uint32_t linesize;
- iVideo_Ptr->GetVideoPointer(vptr,linesize);
-
- //рисуем горизонтальную чёрную линию
- for(n=0;n<=card_width;n++)
- {
-  uint32_t *v_ptr;
-  int32_t x1=cCoord.X+n;
-  int32_t y1=cCoord.Y-1;
-  if (x1>=0 && x1<width && y1>=0 && y1<height)
-  {
-   v_ptr=vptr+(x1+y1*linesize);
-   *v_ptr=(0xffUL<<24)|(0x00<<16)|(0x00<<8)|(0x00<<0);
-  }
- }
-}
-//----------------------------------------------------------------------------------------------------
-//переместить карту из ячейки в ячейку
-//----------------------------------------------------------------------------------------------------
-bool CWnd_Main::MoveCard(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination)
-{
- if (cCardBox_Source.deque_CCard.empty()==true) return(false);//исходный ящик пуст
- cCardBox_Destination.deque_CCard.push_back(cCardBox_Source.deque_CCard.back());
- cCardBox_Source.deque_CCard.pop_back();
- return(true);
-}
-//----------------------------------------------------------------------------------------------------
 //перемещение карт внутри колоды
 //----------------------------------------------------------------------------------------------------
 void CWnd_Main::RotatePool(void)
 {
- bool empty=MoveCard(cCardBox[0],cCardBox[1]);//перемещаем карты из нулевого ящика в первый
+ bool empty=cCardBox[1].MoveOneCard(cCardBox[0]);//перемещаем карты из нулевого ящика в первый
  if (empty==false)//карт нет
  {
   //перемещаем обратно
-  while(MoveCard(cCardBox[1],cCardBox[0])==true);
+  while(cCardBox[0].MoveOneCard(cCardBox[1])==true);
  }
 }
 //----------------------------------------------------------------------------------------------------
@@ -655,16 +608,21 @@ void CWnd_Main::RotatePool(void)
 void CWnd_Main::InitGame(void)
 {
  TimerMode=TIMER_MODE_NONE;
- int32_t value=cCursor.PatienceNumber[0]+10*cCursor.PatienceNumber[1]+100*cCursor.PatienceNumber[2]+1000*cCursor.PatienceNumber[3]+10000*cCursor.PatienceNumber[4];
+ uint32_t value=0;
+ for(int32_t n=0;n<NConsts::PATIENCE_NUMBER_AMOUNT;n++) 
+ {
+  value*=10;
+  value+=cCursor.PatienceNumber[n];
+ }
  srand(value);
  //выставляем все отделения ящиков в исходное положение
- for(int32_t s=0;s<NConsts::CARD_UNIT_AMOUNT;s++) cCardBox[s].deque_CCard.clear();
+ for(int32_t s=0;s<NConsts::CARD_VALUE_AMOUNT;s++) cCardBox[s].deque_CCard.clear();
  //помещаем в исходный ящик карты
  int32_t index=0;
- CARD_SUIT suit[NConsts::CARD_COLOR_AMOUNT]={CARD_SUIT_SPADES,CARD_SUIT_HEARTS,CARD_SUIT_CLUBS,CARD_SUIT_DIAMONDS};
- for(int32_t s=0;s<NConsts::CARD_COLOR_AMOUNT;s++)
+ CCard::CARD_SUIT suit[NConsts::CARD_SUIT_AMOUNT]={CCard::CARD_SUIT_SPADES,CCard::CARD_SUIT_HEARTS,CCard::CARD_SUIT_CLUBS,CCard::CARD_SUIT_DIAMONDS};
+ for(int32_t s=0;s<NConsts::CARD_SUIT_AMOUNT;s++)
  {
-  for(int32_t n=0;n<NConsts::CARD_UNIT_AMOUNT;n++,index++)
+  for(int32_t n=0;n<NConsts::CARD_VALUE_AMOUNT;n++,index++)
   {
    CCard cCard;
    cCard.Suit=suit[s];
@@ -682,7 +640,7 @@ void CWnd_Main::InitGame(void)
    int32_t change=RND(100);
    for(int32_t s=0;s<=change;s++) RotatePool();//пропускаем карты
    //перемещаем карту
-   if (MoveCard(cCardBox[0],cCardBox[n+2])==false)//если пусто в ящике 0 - делаем заново
+   if (cCardBox[n+2].MoveOneCard(cCardBox[0])==false)//если пусто в ящике 0 - делаем заново
    {
     m--;
     continue;
@@ -694,7 +652,7 @@ void CWnd_Main::InitGame(void)
  //приводим магазин в исходное состояние
  while(1)
  {
-  if (cCardBox[1].deque_CCard.empty()==true) break;//если пусто в ящике 1
+  if (cCardBox[1].IsEmpty()==true) break;//если пусто в ящике 1
   RotatePool();//пропускаем карты
  }
 }
@@ -726,10 +684,11 @@ void CWnd_Main::DrawMap(void)
  //рисуем ячейки для карт
  for(int32_t s=0;s<NConsts::BOX_AMOUNT;s++)
  {
-  int32_t xl=cCardBox[s].cRectangle.GetLeftX();
-  int32_t yt=cCardBox[s].cRectangle.GetTopY();
-  int32_t xr=cCardBox[s].cRectangle.GetRightX();
-  int32_t yb=cCardBox[s].cRectangle.GetBottomY();
+  CRectangle cRectangle=cCardBox[s].GetCardRectangle(0);
+  int32_t xl=cRectangle.GetLeftX();
+  int32_t yt=cRectangle.GetTopY();
+  int32_t xr=cRectangle.GetRightX();
+  int32_t yb=cRectangle.GetBottomY();
   for(int32_t n=xl;n<xr;n++)
   {
    for(int32_t m=yt;m<yb;m++)
@@ -750,11 +709,10 @@ void CWnd_Main::DrawMap(void)
   {
    if (cCursor.SelectedBoxIndex==n && cCursor.SelectedPositionIndexInBox>=0 && cCursor.SelectedPositionIndexInBox<=m) continue;
    //эти карты не выбраны
-   int32_t x=cCardBox[n].cRectangle.cCoord_Position.X+cCardBox[n].cCoord_Offset.X*m;
-   int32_t y=cCardBox[n].cRectangle.cCoord_Position.Y+cCardBox[n].cCoord_Offset.Y*m;
-
-   if (cCardBox[n].deque_CCard[m].Visible==false) iSpriteStorage_Ptr->GetSpriteBackPtr()->Put(iVideo_Ptr.get(),x,y,false,CSprite::ForwardColor,ISprite::COLOR_MODE_RGB);
-                                             else DrawCard(CCoord(x,y),cCardBox[n].deque_CCard[m].Value,cCardBox[n].deque_CCard[m].Suit);
+   CRectangle cRectangle=cCardBox[n].GetCardRectangle(m);
+   int32_t x=cRectangle.GetLeftX();
+   int32_t y=cRectangle.GetTopY();
+   cCardBox[n].deque_CCard[m].Draw(CCoord(x,y),iVideo_Ptr.get(),iSpriteStorage_Ptr.get());
   }
  }
  //рисуем выбранные карты
@@ -766,15 +724,18 @@ void CWnd_Main::DrawMap(void)
    if (cCursor.SelectedBoxIndex==n && cCursor.SelectedPositionIndexInBox<=m && cCursor.SelectedPositionIndexInBox>=0)//эти карты выбраны, их игрок может перемещать
    {
     //истинное положение карт в ячейке
-    int32_t x=cCardBox[cCursor.SelectedBoxIndex].cRectangle.cCoord_Position.X+cCardBox[cCursor.SelectedBoxIndex].cCoord_Offset.X*cCursor.SelectedPositionIndexInBox;
-    int32_t y=cCardBox[cCursor.SelectedBoxIndex].cRectangle.cCoord_Position.Y+cCardBox[cCursor.SelectedBoxIndex].cCoord_Offset.Y*cCursor.SelectedPositionIndexInBox;
+	CRectangle cRectangle=cCardBox[cCursor.SelectedBoxIndex].GetCardRectangle(cCursor.SelectedPositionIndexInBox);
+	int32_t x=cRectangle.GetLeftX();
+    int32_t y=cRectangle.GetTopY();
 
     int32_t offsetx=x-cCursor.cCoord_Position.X+cCursor.cCoord_OffsetWithSelectedPosition.X;
     int32_t offsety=y-cCursor.cCoord_Position.Y+cCursor.cCoord_OffsetWithSelectedPosition.Y;
 
-    x=cCardBox[n].cRectangle.cCoord_Position.X+cCardBox[n].cCoord_Offset.X*m;
-    y=cCardBox[n].cRectangle.cCoord_Position.Y+cCardBox[n].cCoord_Offset.Y*m;
-    DrawCard(CCoord(x-offsetx,y-offsety),cCardBox[n].deque_CCard[m].Value,cCardBox[n].deque_CCard[m].Suit);//просто рисуем карты
+	cRectangle=cCardBox[n].GetCardRectangle(m);
+	x=cRectangle.GetLeftX();
+    y=cRectangle.GetTopY();
+	//просто рисуем карты
+	cCardBox[n].deque_CCard[m].Draw(CCoord(x-offsetx,y-offsety),iVideo_Ptr.get(),iSpriteStorage_Ptr.get());
    }
   }
  }
@@ -799,13 +760,7 @@ bool CWnd_Main::GetSelectBoxParam(const CCoord &cCoord,int32_t &box,int32_t &ind
   }
   for(size_t m=0;m<size;m++)
   {
-   int32_t xl=cCardBox[n].cRectangle.cCoord_Position.X+cCardBox[n].cCoord_Offset.X*m;
-   int32_t yt=cCardBox[n].cRectangle.cCoord_Position.Y+cCardBox[n].cCoord_Offset.Y*m;
-   int32_t width=cCardBox[n].cRectangle.cCoord_Size.X;
-   int32_t height=cCardBox[n].cRectangle.cCoord_Size.Y;
-
-   CRectangle cRectangle(CCoord(xl,yt),CCoord(width,height));
-
+   CRectangle cRectangle=cCardBox[n].GetCardRectangle(m);
    if (cRectangle.IsPointInside(cCoord)==true)
    {
     box=n;
@@ -816,30 +771,6 @@ bool CWnd_Main::GetSelectBoxParam(const CCoord &cCoord,int32_t &box,int32_t &ind
  }
  if (box<0) return(false);//в ячейку не попали
  return(true);
-}
-//----------------------------------------------------------------------------------------------------
-//переместить несколько карт из одной ячейки в другую
-//----------------------------------------------------------------------------------------------------
-void CWnd_Main::ChangeBox(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination,size_t card_amount)
-{
- size_t size=cCardBox_Source.deque_CCard.size();
- if (size<card_amount)
- {
-  MessageBox("Мало карт!","Ошибка",MB_OK);
-  return;
- } 
- size_t position=size-card_amount;
- while(position<size)
- {  
-  cCardBox_Destination.deque_CCard.push_back(cCardBox_Source.deque_CCard[position]);
-  position++;
- }
- while(card_amount>0)
- {
-  if (cCardBox_Source.deque_CCard.empty()==true) break;//исходный ящик пуст
-  cCardBox_Source.deque_CCard.pop_back();
-  card_amount--;
- }
 }
 //----------------------------------------------------------------------------------------------------
 //рисование сукна
@@ -882,23 +813,25 @@ void CWnd_Main::DrawMenu(void)
 //----------------------------------------------------------------------------------------------------
 //нарисовать перемещение карт
 //----------------------------------------------------------------------------------------------------
-void CWnd_Main::DrawMoveCard(int32_t s_box,int32_t s_index,int32_t d_box)
+void CWnd_Main::DrawMoveCard(int32_t source_box_index,int32_t source_card_index_in_box,int32_t destination_box_index)
 {
  TimerMode=TIMER_MODE_MOVE_CARD;
- sTimerModeState.s_box=s_box;
- sTimerModeState.d_box=d_box;
- sTimerModeState.s_index=s_index;
- sTimerModeState.xb=cCardBox[s_box].cRectangle.cCoord_Position.X+cCardBox[s_box].cCoord_Offset.X*s_index;
- sTimerModeState.yb=cCardBox[s_box].cRectangle.cCoord_Position.Y+cCardBox[s_box].cCoord_Offset.Y*s_index;
+ sTimerModeState.SourceBoxIndex=source_box_index;
+ sTimerModeState.DestinationBoxIndex=destination_box_index;
+ sTimerModeState.SourceCardIndexInBox=source_card_index_in_box;
+ CRectangle cRectangle=cCardBox[source_box_index].GetCardRectangle(source_card_index_in_box);
+ sTimerModeState.BeginX=cRectangle.GetLeftX();
+ sTimerModeState.BeginY=cRectangle.GetTopY();
  //узнаём конечные координаты
- size_t size=cCardBox[s_box].deque_CCard.size();
- sTimerModeState.xe=cCardBox[d_box].cRectangle.cCoord_Position.X+cCardBox[d_box].cCoord_Offset.X*size;
- sTimerModeState.ye=cCardBox[d_box].cRectangle.cCoord_Position.Y+cCardBox[d_box].cCoord_Offset.Y*size;
+ size_t size=cCardBox[source_box_index].deque_CCard.size();
+ cRectangle=cCardBox[destination_box_index].GetCardRectangle(size);
+ sTimerModeState.EndX=cRectangle.GetLeftX();
+ sTimerModeState.EndY=cRectangle.GetTopY();
 }
 //----------------------------------------------------------------------------------------------------
 //переместить карты с учётом правил
 //----------------------------------------------------------------------------------------------------
-void CWnd_Main::ChangeCard(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination,size_t card_amount)
+void CWnd_Main::MoveCardWithRules(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destination,size_t card_amount)
 {
  size_t source_size=cCardBox_Source.deque_CCard.size();
  if (source_size<card_amount) return;
@@ -908,9 +841,9 @@ void CWnd_Main::ChangeCard(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destinat
  if (cCardBox_Destination.Index>=2 && cCardBox_Destination.Index<9)//если ящик на игровом поле
  {
   //если он пуст, то класть туда можно только короля
-  if (cCardBox_Destination.deque_CCard.empty()==true)
+  if (cCardBox_Destination.IsEmpty()==true)
   {
-   if (cCard_SourceFirst.Value==12) ChangeBox(cCardBox_Source,cCardBox_Destination,card_amount);//наша карта - король, перемещаем её
+   if (cCard_SourceFirst.Value==12) cCardBox_Destination.MoveCard(cCardBox_Source,card_amount);//наша карта - король, перемещаем её
    return;
   }
   //иначе, класть можно в порядке убывания и разных цветовых мастей
@@ -918,11 +851,11 @@ void CWnd_Main::ChangeCard(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destinat
 
   if (cCard_DestinationLast.Value<=cCard_SourceFirst.Value) return;//значение карты больше, чем та, что есть в ячейке ящика
   if (cCard_DestinationLast.Value>cCard_SourceFirst.Value+1) return;//можно класть только карты, отличающиеся по значению на 1
-  CARD_SUIT md=cCard_DestinationLast.Suit;
-  CARD_SUIT ms=cCard_SourceFirst.Suit;
-  if ((md==CARD_SUIT_SPADES || md==CARD_SUIT_CLUBS) && (ms==CARD_SUIT_SPADES || ms==CARD_SUIT_CLUBS)) return;//цвета масти совпадают
-  if ((md==CARD_SUIT_HEARTS || md==CARD_SUIT_DIAMONDS) && (ms==CARD_SUIT_HEARTS || ms==CARD_SUIT_DIAMONDS)) return;//цвета масти совпадают
-  ChangeBox(cCardBox_Source,cCardBox_Destination,card_amount);//копируем карты
+  CCard::CARD_SUIT md=cCard_DestinationLast.Suit;
+  CCard::CARD_SUIT ms=cCard_SourceFirst.Suit;
+  if ((md==CCard::CARD_SUIT_SPADES || md==CCard::CARD_SUIT_CLUBS) && (ms==CCard::CARD_SUIT_SPADES || ms==CCard::CARD_SUIT_CLUBS)) return;//цвета масти совпадают
+  if ((md==CCard::CARD_SUIT_HEARTS || md==CCard::CARD_SUIT_DIAMONDS) && (ms==CCard::CARD_SUIT_HEARTS || ms==CCard::CARD_SUIT_DIAMONDS)) return;//цвета масти совпадают
+  cCardBox_Destination.MoveCard(cCardBox_Source,card_amount);//копируем карты
   return;
  }
  if (cCardBox_Destination.Index>=9 && cCardBox_Destination.Index<13)//если ящик на поле сборки
@@ -943,8 +876,8 @@ void CWnd_Main::ChangeCard(CCardBox &cCardBox_Source,CCardBox &cCardBox_Destinat
 
   if (cCard_DestinationLast.Value>cCard_SourceFirst.Value) return;//значение карты меньше, чем та, что есть в ячейке ящика
   if (cCard_DestinationLast.Value+1<cCard_SourceFirst.Value) return;//можно класть только карты, отличающиеся по значению на 1
-  CARD_SUIT md=cCard_DestinationLast.Suit;
-  CARD_SUIT ms=cCard_SourceFirst.Suit;
+  CCard::CARD_SUIT md=cCard_DestinationLast.Suit;
+  CCard::CARD_SUIT ms=cCard_SourceFirst.Suit;
   if (ms!=md) return;//масти не совпадают
   DrawMoveCard(cCardBox_Source.Index,selected_card_index,cCardBox_Destination.Index);   
   return;
@@ -1022,6 +955,7 @@ bool CWnd_Main::LoadState(void)
  if (cRAIIFileIn.IsOpened()==false) return(false);
  cCursor.LoadState(cRAIIFileIn.GetHandle());
  for(int32_t n=0;n<NConsts::BOX_AMOUNT;n++) cCardBox[n].LoadState(cRAIIFileIn.GetHandle());
+ return(true);
 }
 //----------------------------------------------------------------------------------------------------
 //сохранить состояние
@@ -1032,6 +966,7 @@ bool CWnd_Main::SaveState(void)
  if (cRAIIFileOut.IsOpened()==false) return(false);
  cCursor.SaveState(cRAIIFileOut.GetHandle());
  for(int32_t n=0;n<NConsts::BOX_AMOUNT;n++) cCardBox[n].SaveState(cRAIIFileOut.GetHandle());
+ return(true);
 }
 
 //====================================================================================================
