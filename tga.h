@@ -17,7 +17,7 @@
 #pragma pack(1)
 struct STGAHeader
 {
- uint8_t identsize;//размер поля ID заголовка (0)
+ uint8_t identsize;//размер поля заголовка 
  uint8_t colorMapType;//если ли палитра:0-нет,1-есть
  uint8_t imageType;//тип картинки:0-нет,1-индексные цвета,2-RGB,3-оттенки серого, (3-й бит - RLE- кодирование)
  uint16_t colorMapStart;//начало карты цветов

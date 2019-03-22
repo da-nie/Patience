@@ -45,7 +45,7 @@ static uint8_t *GetTGAImage(uint8_t *data_ptr,uint32_t length,int32_t &width,int
  //выделяем память для изображения
  int32_t image_length=sTGAHeader.width*sTGAHeader.height*sTGAHeader.bits/8;
  //считываем изображение
- uint32_t image_offset=sizeof(struct STGAHeader)+sTGAHeader.colorMapStart+sTGAHeader.colorMapLength*sTGAHeader.colorMapBits/8;
+ uint32_t image_offset=sizeof(struct STGAHeader)+sTGAHeader.colorMapStart+sTGAHeader.colorMapLength*sTGAHeader.colorMapBits/8+sTGAHeader.identsize;
  if (image_offset+image_length>length) return(NULL);//недостаточно данных
  //а теперь анализируем формат
  if (sTGAHeader.bits==24)//BGR - модицифируем для четвёрок байт
@@ -144,7 +144,7 @@ static uint8_t *GetTGAImage(uint8_t *data_ptr,uint32_t length,int32_t &width,int
 
  if (sTGAHeader.colorMapType==TGA_COLOR_MAP_PALETTE && sTGAHeader.colorMapBits/8==3)//есть палитра по 24 бита (другую палитру не поддерживаем)
  {
-  uint32_t palette_offset=sizeof(STGAHeader)+sTGAHeader.colorMapStart;
+  uint32_t palette_offset=sizeof(STGAHeader)+sTGAHeader.colorMapStart+sTGAHeader.identsize;
   if (palette_offset+sTGAHeader.colorMapLength*3>length) return(NULL);//не хватает данных
   uint8_t *color_map=data_ptr+palette_offset;
   //нам потребуется изменить формат

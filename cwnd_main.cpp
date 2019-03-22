@@ -431,6 +431,13 @@ void CWnd_Main::InitScreen(int32_t &right_border,int32_t &bottom_border)
  uint32_t screen_width=right_border;
  uint32_t screen_height=bottom_border;
 
+ //скорректируем высоту окна по экрану
+ RECT Rect;
+ ::GetClientRect(::GetDesktopWindow(),&Rect);
+ int32_t height=Rect.bottom-Rect.top;
+ height*=0.9;
+ if (height<screen_height) screen_height=height;
+
  iVideo_Ptr.reset(new CVideo(screen_width,screen_height));
  ScreenBuffer.Set(new uint32_t[screen_width*screen_height]);
  iVideo_Ptr->SetVideoPointer(ScreenBuffer.Get(),screen_width);
